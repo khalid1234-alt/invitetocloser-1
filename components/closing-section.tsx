@@ -1,7 +1,10 @@
+'use client'
+
 import { Reveal } from '@/components/reveal'
-import { invitation } from '@/lib/invitation-data'
+import { useInvitation } from '@/lib/invitation-context'
 
 export function ClosingSection() {
+  const { invitation } = useInvitation()
   return (
     <footer className="relative overflow-hidden px-6 pt-12 pb-16">
       <img

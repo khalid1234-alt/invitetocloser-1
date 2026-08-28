@@ -1,9 +1,12 @@
+'use client'
+
 import { MapPin, Navigation } from 'lucide-react'
 import { SectionTitle } from '@/components/ornament'
 import { Reveal } from '@/components/reveal'
-import { invitation, mapDirectionsUrl, mapEmbedUrl } from '@/lib/invitation-data'
+import { useInvitation } from '@/lib/invitation-context'
 
 export function VenueSection() {
+  const { invitation, mapDirectionsUrl, mapEmbedUrl } = useInvitation()
   return (
     <section className="px-6 py-14">
       <div className="mx-auto flex max-w-md flex-col items-center gap-8">

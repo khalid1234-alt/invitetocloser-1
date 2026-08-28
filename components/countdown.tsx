@@ -1,9 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { invitation } from '@/lib/invitation-data'
-
-const TARGET = new Date(invitation.startsAt).getTime()
+import { useInvitation } from '@/lib/invitation-context'
 
 function split(ms: number) {
   const total = Math.max(0, Math.floor(ms / 1000))
@@ -18,15 +16,16 @@ function split(ms: number) {
 const pad = (n: number) => String(n).padStart(2, '0')
 
 export function Countdown() {
+  const { invitation } = useInvitation()
   /* start at null so the server and the first client paint agree */
   const [left, setLeft] = useState<number | null>(null)
 
   useEffect(() => {
-    const tick = () => setLeft(TARGET - Date.now())
+    const tick = () => setLeft(new Date(invitation.startsAt).getTime() - Date.now())
     tick()
     const id = window.setInterval(tick, 1000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [invitation.startsAt])
 
   const t = split(left ?? 0)
   const arrived = left !== null && left <= 0

@@ -1,9 +1,12 @@
+'use client'
+
 import { MessageCircle, Phone } from 'lucide-react'
 import { Ornament } from '@/components/ornament'
 import { Reveal } from '@/components/reveal'
-import { invitation } from '@/lib/invitation-data'
+import { useInvitation } from '@/lib/invitation-context'
 
 export function ContactSection() {
+  const { invitation } = useInvitation()
   return (
     <section className="px-6 py-14">
       <div className="mx-auto flex max-w-md flex-col items-center gap-6 text-center">

@@ -1,14 +1,62 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { invitation } from "@/lib/invitation-data";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useInvitation } from '@/lib/invitation-context';
+import { LocationPicker, type SelectedLocation } from '@/components/location-picker';
 
-type Stage = "idle" | "playing" | "closing" | "done";
+type Stage = "form" | "idle" | "playing" | "closing" | "done";
 
 export function OpenGate() {
-  const [stage, setStage] = useState<Stage>("idle");
+  const [stage, setStage] = useState<Stage>("form");
+  const [formError, setFormError] = useState('');
   const [showNames, setShowNames] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { invitation, setInvitation } = useInvitation();
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const fields = ['groom', 'bride', 'father', 'address', 'date', 'time', 'lat', 'lon'];
+    const hasDetails = fields.every((field) => params.get(field)?.trim());
+    const validDate = /^\d{4}-\d{2}-\d{2}$/.test(params.get('date') || '');
+    const validTime = /^\d{2}:\d{2}$/.test(params.get('time') || '');
+    const validCoordinates = Number.isFinite(Number(params.get('lat'))) && Number.isFinite(Number(params.get('lon')));
+    if (hasDetails && validDate && validTime && validCoordinates) setStage('idle');
+  }, []);
+
+  const submitDetails = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const groom = String(form.get('groom') || '').trim();
+    const bride = String(form.get('bride') || '').trim();
+    const father = String(form.get('father') || '').trim();
+    const address = String(form.get('address') || '').trim();
+    const dateValue = String(form.get('date') || '');
+    const timeValue = String(form.get('time') || '');
+    if (!groom || !bride || !father || !address || !dateValue || !timeValue || !selectedLocation) {
+      setFormError(selectedLocation ? 'Please complete every detail to continue.' : 'Please search for and choose a location from the map results.');
+      return;
+    }
+    const date = new Date(`${dateValue}T12:00:00`);
+    const time = new Date(`1970-01-01T${timeValue}:00`);
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const month = date.toLocaleDateString('en-US', { month: 'long' });
+    const label = time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    setInvitation({
+      ...invitation,
+      groom,
+      bride,
+      hosts: `The Family of Mr. ${father}`,
+      date: { weekday, day: dateValue.slice(8, 10), month, year: dateValue.slice(0, 4), full: `${weekday}, ${date.getDate()} ${month} ${date.getFullYear()}` },
+      time: { label, note: 'Dinner Onwards' },
+      startsAt: `${dateValue}T${timeValue}:00`,
+      venue: selectedLocation,
+    });
+    const params = new URLSearchParams({ groom, bride, father, address, date: dateValue, time: timeValue, lat: String(selectedLocation.lat), lon: String(selectedLocation.lon) });
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    setFormError('');
+    setStage('idle');
+  };
 
   /* lock scrolling until the film has finished */
   useEffect(() => {
@@ -56,6 +104,33 @@ export function OpenGate() {
       }`}
       aria-hidden={stage === "closing"}
     >
+      {/* ---------- invitation details ---------- */}
+      <div className={`paper-bg absolute inset-0 flex items-center justify-center overflow-y-auto px-6 py-8 transition-opacity duration-700 ${stage === 'form' ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <form onSubmit={submitDetails} className="relative z-10 flex w-full max-w-md flex-col gap-5 rounded-2xl border border-primary/40 bg-card/95 px-6 py-7 shadow-xl">
+          <div className="text-center">
+            <p className="text-xs tracking-[0.35em] text-primary uppercase">Your Invitation</p>
+            <h1 className="mt-2 font-script text-4xl text-secondary">Add the details</h1>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[
+              ['groom', 'Groom name', 'text'],
+              ['bride', 'Bride name', 'text'],
+              ['father', "Father's name", 'text'],
+              ['date', 'Date', 'date'],
+              ['time', 'Time', 'time'],
+            ].map(([name, label, type]) => (
+              <label key={name} className={name === 'address' ? 'sm:col-span-2' : ''}>
+                <span className="mb-1.5 block text-xs tracking-[0.16em] text-muted-foreground uppercase">{label}</span>
+                <input name={name} type={type} required className="w-full rounded-lg border border-primary/35 bg-background/70 px-3 py-2.5 text-foreground outline-none focus:ring-2 focus:ring-primary" />
+              </label>
+            ))}
+            <LocationPicker value={selectedLocation} onChange={setSelectedLocation} />
+          </div>
+          {formError && <p className="text-center text-sm text-destructive">{formError}</p>}
+          <button type="submit" className="rounded-full bg-secondary px-6 py-3 text-sm tracking-[0.22em] text-secondary-foreground uppercase transition-colors hover:bg-secondary/90">Continue</button>
+        </form>
+      </div>
+
       {/* ---------- invitation cover ---------- */}
       <div
         className={`paper-bg absolute inset-0 flex flex-col items-center justify-center gap-8 px-6 transition-opacity duration-700 ${

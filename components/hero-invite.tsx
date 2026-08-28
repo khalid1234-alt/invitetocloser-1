@@ -1,9 +1,12 @@
+'use client'
+
 import { Ornament } from '@/components/ornament'
 import { Reveal } from '@/components/reveal'
-import { invitation } from '@/lib/invitation-data'
+import { useInvitation } from '@/lib/invitation-context'
 import Slider3D from '@/components/slider-3d'
 
 export function HeroInvite() {
+  const { invitation } = useInvitation()
   return (
     <section className="relative overflow-hidden px-6 pt-14 pb-16 sm:pt-20">
       <img

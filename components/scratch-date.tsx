@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Countdown } from '@/components/countdown'
-import { invitation } from '@/lib/invitation-data'
+import { useInvitation } from '@/lib/invitation-context'
 
 const REVEAL_THRESHOLD = 0.45
 const BRUSH_RADIUS = 20
@@ -11,6 +11,7 @@ const PROGRESS_INTERVAL = 160
 type RevealSide = 'left' | 'right'
 
 export function ScratchDate() {
+  const { invitation } = useInvitation()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const drawing = useRef(false)
   const lastPoint = useRef<{ x: number; y: number } | null>(null)
