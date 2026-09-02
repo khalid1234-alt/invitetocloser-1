@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getInvitationById, readInvitationRecords, upsertInvitation } from '@/lib/invitation-store'
 
+const PREVIEW_COOKIE = 'invitation-preview'
+
 function parseDateInfo(dateValue: string, timeValue: string) {
   const date = new Date(`${dateValue}T12:00:00`)
   const time = new Date(`1970-01-01T${timeValue}:00`)
@@ -52,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const dateInfo = parseDateInfo(dateValue, timeValue)
-    const record = await upsertInvitation({
+    const invitation = {
       id: String(payload.id ?? ''),
       groom,
       bride,
@@ -81,9 +83,31 @@ export async function POST(request: NextRequest) {
         tel: tel || '0000000000',
         whatsapp: whatsapp || tel || '0000000000',
       },
-    })
+    }
 
-    return NextResponse.json(record)
+    let record
+    try {
+      record = await upsertInvitation(invitation)
+    } catch (error) {
+      console.error('Invitation persistence failed; using preview cookie', error)
+      const now = new Date().toISOString()
+      record = {
+        ...invitation,
+        id: invitation.id || Math.random().toString(36).slice(2, 10),
+        createdAt: now,
+        updatedAt: now,
+      }
+    }
+
+    const response = NextResponse.json(record)
+    response.cookies.set(PREVIEW_COOKIE, Buffer.from(JSON.stringify(record)).toString('base64url'), {
+      httpOnly: true,
+      maxAge: 60 * 60,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    })
+    return response
   } catch (error) {
     console.error('Invitation save failed', error)
     return NextResponse.json({ error: 'Unable to save invitation.' }, { status: 500 })
