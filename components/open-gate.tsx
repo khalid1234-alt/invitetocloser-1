@@ -6,8 +6,14 @@ import { LocationPicker, type SelectedLocation } from '@/components/location-pic
 
 type Stage = "form" | "idle" | "playing" | "closing" | "done";
 
-export function OpenGate() {
-  const [stage, setStage] = useState<Stage>("form");
+export function OpenGate({
+  autoPlay = false,
+  startStage,
+}: {
+  autoPlay?: boolean
+  startStage?: Stage
+}) {
+  const [stage, setStage] = useState<Stage>(startStage ?? "form");
   const [formError, setFormError] = useState('');
   const [showNames, setShowNames] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -15,6 +21,11 @@ export function OpenGate() {
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
 
   useEffect(() => {
+    if (startStage) {
+      setStage(startStage)
+      return
+    }
+
     const params = new URLSearchParams(window.location.search);
     const fields = ['groom', 'bride', 'father', 'address', 'date', 'time', 'lat', 'lon'];
     const hasDetails = fields.every((field) => params.get(field)?.trim());
@@ -22,7 +33,7 @@ export function OpenGate() {
     const validTime = /^\d{2}:\d{2}$/.test(params.get('time') || '');
     const validCoordinates = Number.isFinite(Number(params.get('lat'))) && Number.isFinite(Number(params.get('lon')));
     if (hasDetails && validDate && validTime && validCoordinates) setStage('idle');
-  }, []);
+  }, [startStage]);
 
   const submitDetails = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -89,6 +100,12 @@ export function OpenGate() {
       void video.play();
     }
   };
+
+  useEffect(() => {
+    if (autoPlay && stage === 'idle') {
+      void open();
+    }
+  }, [autoPlay, stage]);
 
   const finish = () => {
     setStage("closing");

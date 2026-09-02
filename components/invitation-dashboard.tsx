@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { LocationPicker, type SelectedLocation } from '@/components/location-picker'
 import { invitation as defaultInvitation } from '@/lib/invitation-data'
 
 type FormState = {
@@ -41,9 +42,25 @@ const emptyForm: FormState = {
 
 export function InvitationDashboard() {
   const [form, setForm] = useState<FormState>(emptyForm)
+  const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null)
   const [previewId, setPreviewId] = useState('')
   const [status, setStatus] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+
+  useEffect(() => {
+    const hasLocation = Boolean(form.venueAddress || form.lat || form.lon)
+    if (!hasLocation) {
+      setSelectedLocation(null)
+      return
+    }
+
+    setSelectedLocation({
+      name: form.venueName || form.venueAddress.split(',')[0] || 'Venue',
+      address: form.venueAddress,
+      lat: Number(form.lat) || 0,
+      lon: Number(form.lon) || 0,
+    })
+  }, [form.lat, form.lon, form.venueAddress, form.venueName])
 
   useEffect(() => {
     async function loadInvitation() {
@@ -86,11 +103,25 @@ export function InvitationDashboard() {
     setIsSaving(true)
     setStatus('')
 
+    const venueLocation = selectedLocation ?? {
+      name: form.venueName || form.venueAddress.split(',')[0] || 'Venue',
+      address: form.venueAddress,
+      lat: Number(form.lat),
+      lon: Number(form.lon),
+    }
+
     try {
       const response = await fetch('/api/invitation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, id: form.id || undefined }),
+        body: JSON.stringify({
+          ...form,
+          id: form.id || undefined,
+          venueName: venueLocation.name,
+          venueAddress: venueLocation.address,
+          lat: String(venueLocation.lat),
+          lon: String(venueLocation.lon),
+        }),
       })
 
       const data = await response.json() as { id?: string; error?: string }
@@ -158,6 +189,23 @@ export function InvitationDashboard() {
                 className="w-full rounded-xl border border-primary/35 bg-background/70 px-3 py-2.5 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary"
               />
             </label>
+
+            <div className="sm:col-span-2">
+              <LocationPicker
+                value={selectedLocation}
+                onChange={(nextLocation) => {
+                  setSelectedLocation(nextLocation)
+                  if (!nextLocation) return
+                  setForm((current) => ({
+                    ...current,
+                    venueName: nextLocation.name,
+                    venueAddress: nextLocation.address,
+                    lat: String(nextLocation.lat),
+                    lon: String(nextLocation.lon),
+                  }))
+                }}
+              />
+            </div>
 
             <label>
               <span className="mb-1.5 block text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Latitude</span>
