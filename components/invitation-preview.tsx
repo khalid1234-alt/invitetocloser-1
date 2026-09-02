@@ -14,7 +14,7 @@ import type { Invitation } from '@/lib/invitation-context'
 export function InvitationPreview({ initialInvitation }: { initialInvitation?: Invitation }) {
   return (
     <InvitationProvider initialInvitation={initialInvitation}>
-      <OpenGate autoPlay startStage="idle" />
+      <OpenGate startStage="idle" />
       <div className="paper-bg  relative min-h-screen w-full overflow-x-hidden">
         <div className="fixed-bg" aria-hidden="true" />
         <div className="fixed-bg-veil" aria-hidden="true" />

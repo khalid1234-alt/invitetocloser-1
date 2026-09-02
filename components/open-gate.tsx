@@ -7,10 +7,8 @@ import { LocationPicker, type SelectedLocation } from '@/components/location-pic
 type Stage = "form" | "idle" | "playing" | "closing" | "done";
 
 export function OpenGate({
-  autoPlay = false,
   startStage,
 }: {
-  autoPlay?: boolean
   startStage?: Stage
 }) {
   const [stage, setStage] = useState<Stage>(startStage ?? "form");
@@ -96,16 +94,9 @@ export function OpenGate({
       video.currentTime = 0;
       await video.play();
     } catch {
-      video.muted = true;
-      void video.play();
+      setStage("idle");
     }
   };
-
-  useEffect(() => {
-    if (autoPlay && stage === 'idle') {
-      void open();
-    }
-  }, [autoPlay, stage]);
 
   const finish = () => {
     setStage("closing");
