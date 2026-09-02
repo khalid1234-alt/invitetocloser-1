@@ -1,0 +1,34 @@
+[
+  {
+    "id": "tw1oy0co",
+    "groom": "Khalid",
+    "bride": "Ayesha",
+    "occasion": "Walima Ceremony",
+    "hosts": "The Family of Mr. & Mrs. Naeem Khan",
+    "date": {
+      "weekday": "Thursday",
+      "day": "26",
+      "month": "November",
+      "year": "2026",
+      "full": "Thursday, 26 November 2026"
+    },
+    "time": {
+      "label": "7:00 PM",
+      "note": "07:00 PM"
+    },
+    "startsAt": "2026-11-26T19:00:00",
+    "venue": {
+      "name": "The Royal Banquet",
+      "address": "The Royal Banquet, Dwarka Mor",
+      "lat": 28.615108169205634,
+      "lon": 7703231238108411
+    },
+    "contact": {
+      "display": "+91 97162 48666",
+      "tel": "+919716248666",
+      "whatsapp": "919716248666"
+    },
+    "createdAt": "2026-09-02T08:25:22.275Z",
+    "updatedAt": "2026-09-02T08:32:52.510Z"
+  }
+]

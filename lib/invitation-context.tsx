@@ -53,12 +53,26 @@ function invitationFromParams(params: URLSearchParams): Invitation | null {
   }
 }
 
-export function InvitationProvider({ children }: { children: ReactNode }) {
-  const [currentInvitation, setCurrentInvitation] = useState<Invitation>(defaultInvitation)
+export function InvitationProvider({
+  children,
+  initialInvitation,
+}: {
+  children: ReactNode
+  initialInvitation?: Invitation
+}) {
+  const [currentInvitation, setCurrentInvitation] = useState<Invitation>(initialInvitation ?? defaultInvitation)
+
   useEffect(() => {
     const fromUrl = invitationFromParams(new URLSearchParams(window.location.search))
-    if (fromUrl) setCurrentInvitation(fromUrl)
-  }, [])
+    if (fromUrl) {
+      setCurrentInvitation(fromUrl)
+      return
+    }
+    if (initialInvitation) {
+      setCurrentInvitation(initialInvitation)
+    }
+  }, [initialInvitation])
+
   const value = useMemo(() => {
     const { lat, lon } = currentInvitation.venue
     const d = 0.02
