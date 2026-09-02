@@ -1,4 +1,4 @@
-'use client'
+'use client '
 
 import { ClosingSection } from '@/components/closing-section'
 import { ContactSection } from '@/components/contact-section'
@@ -15,7 +15,7 @@ export function InvitationPreview({ initialInvitation }: { initialInvitation?: I
   return (
     <InvitationProvider initialInvitation={initialInvitation}>
       <OpenGate autoPlay startStage="idle" />
-      <div className="paper-bg relative min-h-screen w-full overflow-x-hidden">
+      <div className="paper-bg  relative min-h-screen w-full overflow-x-hidden">
         <div className="fixed-bg" aria-hidden="true" />
         <div className="fixed-bg-veil" aria-hidden="true" />
         <main className="relative z-10 mx-auto w-full max-w-2xl">
@@ -25,7 +25,7 @@ export function InvitationPreview({ initialInvitation }: { initialInvitation?: I
           <VenueSection />
           <DuaSection />
           <ContactSection />
-          <ClosingSection />
+          <ClosingSection /> 
         </main>
       </div>
     </InvitationProvider>
