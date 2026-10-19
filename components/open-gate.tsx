@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { ChevronDown } from 'lucide-react';
 import { useInvitation } from '@/lib/invitation-context';
 import { LocationPicker, type SelectedLocation } from '@/components/location-picker';
 
@@ -14,6 +15,7 @@ export function OpenGate({
   const [stage, setStage] = useState<Stage>(startStage ?? "form");
   const [formError, setFormError] = useState('');
   const [showNames, setShowNames] = useState(false);
+  const [showScrollArrow, setShowScrollArrow] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { invitation, setInvitation } = useInvitation();
   const [selectedLocation, setSelectedLocation] = useState<SelectedLocation | null>(null);
@@ -79,6 +81,17 @@ export function OpenGate({
     };
   }, [stage]);
 
+  useEffect(() => {
+    if (stage !== "done") return;
+
+    setShowScrollArrow(true);
+    const hideOnScroll = () => {
+      if (window.scrollY > 0) setShowScrollArrow(false);
+    };
+    window.addEventListener("scroll", hideOnScroll, { passive: true });
+    return () => window.removeEventListener("scroll", hideOnScroll);
+  }, [stage]);
+
   /* names appear 4s after the video starts */
   useEffect(() => {
     if (stage !== "playing") return;
@@ -103,7 +116,20 @@ export function OpenGate({
     window.setTimeout(() => setStage("done"), 900);
   };
 
-  if (stage === "done") return null;
+  if (stage === "done") {
+    if (!showScrollArrow) return null;
+
+    return (
+      <button
+        type="button"
+        onClick={() => window.scrollBy({ top: window.innerHeight * 0.75, behavior: "smooth" })}
+        aria-label="Scroll down to view the invitation"
+        className="fixed bottom-6 left-1/2 z-40 flex size-12 -translate-x-1/2 items-center justify-center rounded-full border border-primary/60 bg-background/85 text-secondary shadow-lg backdrop-blur-sm transition-opacity hover:bg-background"
+      >
+        <ChevronDown className="size-6 animate-bounce" aria-hidden="true" />
+      </button>
+    );
+  }
 
   return (
     <div
